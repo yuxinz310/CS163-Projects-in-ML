@@ -1,0 +1,18 @@
+{
+  "target": {
+    "observation_time_utc": "2022-07-17T18:39:21.141",
+    "time_basis": "observation start",
+    "selection_method": "closest",
+    "opd_file": "R2022071702-NRCA3_FP1-1.fits",
+    "sha256": "edb64bf0de10a14610a17f1cb1541b1785e1a7517dc155b2e75205d3405b4323",
+    "stpsf_version": "2.2.0"
+  },
+  "reference": {
+    "observation_time_utc": "2022-07-17T20:23:01.919",
+    "time_basis": "observation start",
+    "selection_method": "closest",
+    "opd_file": "R2022071702-NRCA3_FP1-1.fits",
+    "sha256": "edb64bf0de10a14610a17f1cb1541b1785e1a7517dc155b2e75205d3405b4323",
+    "stpsf_version": "2.2.0"
+  }
+}

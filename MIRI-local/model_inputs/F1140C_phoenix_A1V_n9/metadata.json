@@ -1,0 +1,11 @@
+{
+  "filter": "F1140C",
+  "source_spectrum": {
+    "catalog": "phoenix",
+    "spectral_type": "A1V"
+  },
+  "num_wavelengths": 9,
+  "wavelength_unit": "meter",
+  "stpsf_version": "2.2.0",
+  "method": "STPSF/POPPY _get_weights"
+}

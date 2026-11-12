@@ -1,0 +1,162 @@
+{
+ "instrument": "MIRI",
+ "filter": "F1550C",
+ "image_mask": "4QPM_1550",
+ "subarray": "MASK1550",
+ "subarray_shape_yx": [
+  224,
+  288
+ ],
+ "pixel_scale_arcsec": 0.1101,
+ "coron_center_xy_0based": [
+  119.75,
+  113.29
+ ],
+ "crop_params": {
+  "hsize": 288,
+  "vsize": 224,
+  "shift_y": 0,
+  "shift_x": 24
+ },
+ "num_det_px": 80,
+ "crop_center_xy_0based": [
+  120,
+  112
+ ],
+ "coron_center_minus_crop_center_xy": [
+  -0.25,
+  1.2900000000000063
+ ],
+ "science_files": [
+  "jw01386008001_04101_00001_mirimage_calints.fits",
+  "jw01386009001_04101_00001_mirimage_calints.fits"
+ ],
+ "reference_files": [
+  "jw01386007001_04101_00001_mirimage_calints.fits",
+  "jw01386007001_04101_00002_mirimage_calints.fits",
+  "jw01386007001_04101_00003_mirimage_calints.fits",
+  "jw01386007001_04101_00004_mirimage_calints.fits",
+  "jw01386007001_04101_00005_mirimage_calints.fits",
+  "jw01386007001_04101_00006_mirimage_calints.fits",
+  "jw01386007001_04101_00007_mirimage_calints.fits",
+  "jw01386007001_04101_00008_mirimage_calints.fits",
+  "jw01386007001_04101_00009_mirimage_calints.fits"
+ ],
+ "pixel_mask": "pixel_masks.npy",
+ "files": [
+  {
+   "file": "jw01386008001_04101_00001_mirimage_calints.fits",
+   "role": "target",
+   "obs": 8,
+   "exposure": 1,
+   "nints": 59,
+   "pa_aper": 108.17107381748747,
+   "bad_px": 18391,
+   "bad_px_in_crop": 105
+  },
+  {
+   "file": "jw01386009001_04101_00001_mirimage_calints.fits",
+   "role": "target",
+   "obs": 9,
+   "exposure": 1,
+   "nints": 59,
+   "pa_aper": 117.54983150698696,
+   "bad_px": 18365,
+   "bad_px_in_crop": 93
+  },
+  {
+   "file": "jw01386007001_04101_00001_mirimage_calints.fits",
+   "role": "reference",
+   "obs": 7,
+   "exposure": 1,
+   "nints": 18,
+   "pa_aper": 109.2146450046046,
+   "bad_px": 18303,
+   "bad_px_in_crop": 92
+  },
+  {
+   "file": "jw01386007001_04101_00002_mirimage_calints.fits",
+   "role": "reference",
+   "obs": 7,
+   "exposure": 2,
+   "nints": 18,
+   "pa_aper": 109.21463437851206,
+   "bad_px": 18304,
+   "bad_px_in_crop": 93
+  },
+  {
+   "file": "jw01386007001_04101_00003_mirimage_calints.fits",
+   "role": "reference",
+   "obs": 7,
+   "exposure": 3,
+   "nints": 18,
+   "pa_aper": 109.21463905922131,
+   "bad_px": 18306,
+   "bad_px_in_crop": 96
+  },
+  {
+   "file": "jw01386007001_04101_00004_mirimage_calints.fits",
+   "role": "reference",
+   "obs": 7,
+   "exposure": 4,
+   "nints": 18,
+   "pa_aper": 109.21463884230494,
+   "bad_px": 18311,
+   "bad_px_in_crop": 92
+  },
+  {
+   "file": "jw01386007001_04101_00005_mirimage_calints.fits",
+   "role": "reference",
+   "obs": 7,
+   "exposure": 5,
+   "nints": 18,
+   "pa_aper": 109.21463771980947,
+   "bad_px": 18300,
+   "bad_px_in_crop": 92
+  },
+  {
+   "file": "jw01386007001_04101_00006_mirimage_calints.fits",
+   "role": "reference",
+   "obs": 7,
+   "exposure": 6,
+   "nints": 18,
+   "pa_aper": 109.21463457445375,
+   "bad_px": 18307,
+   "bad_px_in_crop": 92
+  },
+  {
+   "file": "jw01386007001_04101_00007_mirimage_calints.fits",
+   "role": "reference",
+   "obs": 7,
+   "exposure": 7,
+   "nints": 18,
+   "pa_aper": 109.21463893082871,
+   "bad_px": 18307,
+   "bad_px_in_crop": 92
+  },
+  {
+   "file": "jw01386007001_04101_00008_mirimage_calints.fits",
+   "role": "reference",
+   "obs": 7,
+   "exposure": 8,
+   "nints": 18,
+   "pa_aper": 109.21463354924826,
+   "bad_px": 18307,
+   "bad_px_in_crop": 93
+  },
+  {
+   "file": "jw01386007001_04101_00009_mirimage_calints.fits",
+   "role": "reference",
+   "obs": 7,
+   "exposure": 9,
+   "nints": 18,
+   "pa_aper": 109.2146332625926,
+   "bad_px": 18305,
+   "bad_px_in_crop": 96
+  }
+ ],
+ "source": "JWST ERS 1386, MAST calints (CAL_VER 3.0.0, jwst_1584.pmap)",
+ "notes": "targets background-subtracted by the pipeline; reference dithers minus the median of the reference background exposures; first integration of every exposure dropped; bad pixels filled, see pixel_masks.npy",
+ "fits_dir": "fits_processed",
+ "fits_mast_dir": "fits_mast"
+}

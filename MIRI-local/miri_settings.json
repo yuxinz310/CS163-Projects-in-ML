@@ -1,0 +1,18 @@
+{
+  "instrument": "MIRI",
+  "filter": "F1140C",
+  "image_mask": "FQPM1140",
+  "pupil_mask": "MASKFQPM",
+  "num_wavelengths": 9,
+  "fft_oversample": 4,
+  "detector_oversample": 4,
+  "pupil_pixels": 1024,
+  "detector_pixels": 80,
+  "pixel_scale_arcsec": 0.1102,
+
+
+  "source_spectrum": {
+    "catalog": "phoenix",
+    "spectral_type": "A1V"
+  }
+}
