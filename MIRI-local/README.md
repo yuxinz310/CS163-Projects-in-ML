@@ -26,16 +26,7 @@ The requirements.txt file pins these direct dependencies:
 - pyklip 2.8
 - matplotlib 3.11.2 and imageio-ffmpeg 0.6.0
 
-Full F1140C and F1550C fits were tested on an NVIDIA H200. F1550C optical
-validation and a short two-stage fit were tested on a Tesla P100 with 16 GB GPU memory.
-This does not establish a minimum memory requirement for every configuration.
-CPU execution is available using --device cpu, but full fits can be much slower.
-The GPU execution path uses CUDA, not Apple MPS or AMD ROCm.
 
-For hardware needing a different PyTorch build, adjust the torch/torchvision
-pins and CUDA index together using https://pytorch.org/get-started/locally/ .
-Different versions can change numerical results. Transitive dependencies are
-not fully locked by this requirements file.
 
 2. Installation guide
 ---------------------
@@ -54,9 +45,7 @@ Check GPU access:
 
   python -c "import torch; print(torch.__version__); print('CUDA:', torch.cuda.is_available())"
 
-CUDA should report True for GPU execution. No HPC account or Slurm script is
-needed on a local GPU machine. Installation time depends on download speed and
-package availability; a fresh-machine installation time has not been measured.
+
 
 3. Demo
 -------
