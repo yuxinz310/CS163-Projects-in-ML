@@ -47,6 +47,29 @@ Separate sampling controls are `--fft-oversample` and `--detector-oversample`.
 Use `python run_miri.py --help` for all options, including `--resume CHECKPOINT`.
 Resuming requires the same inputs, code, and fitting settings.
 
+## Code flow
+
+`run_miri.py` coordinates the full run; you do not need to run each preparation
+script manually.
+
+```text
+Settings + original observations
+    → download calibration and prepare optical inputs
+    → load images, noise maps, masks, and optical inputs
+    → build model → fit reference star → fit target star
+    → save residuals, SNR, plots, and video
+```
+
+| Group | Files and responsibilities |
+| --- | --- |
+| Configuration | `miri_settings.json`: optics and spectrum; `miri_fit_settings.json`: fitting defaults; `miri_paths.py`: filter settings and input paths. |
+| Input preparation: calibration and observations | `setup_miri_calibration.py` downloads files listed in `calibration_sources.json`; `prepare_observation_metadata.py` records the selected observations. |
+| Input preparation: optical components | `miri_instrument.py` configures STPSF and exports telescope OPDs; `miri_spectrum.py` supplies the stellar spectrum; `prepare_miri_wavelengths.py`, `prepare_miri_instrument_opds.py`, `prepare_miri_pupils.py`, and `prepare_miri_focal_mask.py` generate wavelength weights and optical maps. |
+| Input loading | `miri_model_inputs.py` loads prepared optical arrays; `miri_observations.py` loads and crops the observed images, noise maps, and pixel masks. |
+| Model construction | `miri_wavefront.py` creates the complex light field; `miri_propagation.py` propagates it through the optics; `miri_detector.py` applies Gaussian blur and pixel binning; `miri_model.py` combines these with wavelength weights and fitted parameters. |
+| Optimization | `run_miri_demo.py` runs the reference/target fitting stages and saves checkpoints, snapshots, loss, and SNR history. |
+| Analysis | `miri_results.py` measures SNR and creates plots; `miri_video.py` makes the residual video. SNR measurements are also called during fitting. |
+
 ## Results
 
 Each run saves to `outputs/optimization/<run-directory>/`:
