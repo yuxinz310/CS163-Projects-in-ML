@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+from miri_paths import model_input_dir, telescope_input_dir
 
 
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -18,16 +19,18 @@ def load_pupil_array(path, expected_shape):
     if not np.all(np.isfinite(array)):
         raise ValueError(f"{path}: contains invalid values")
 
-    return array
+    # FITS-derived arrays may retain big-endian storage, which PyTorch
+    # cannot ingest directly. Convert in memory to native float64.
+    return np.asarray(array, dtype=np.float64)
 
 
-def load_miri_inputs(role="reference"):
+def load_miri_inputs(role="reference", settings_path=None):
     """Load saved optical inputs without changing their orientations."""
     if role not in ("reference", "target"):
         raise ValueError("Role must be reference or target.")
 
     settings = json.loads(
-        (PROJECT_DIR / "miri_settings.json").read_text()
+        Path(settings_path or PROJECT_DIR / "miri_settings.json").read_text()
     )
     source = settings["source_spectrum"]
 
@@ -35,10 +38,8 @@ def load_miri_inputs(role="reference"):
         f"{settings['filter']}_{source['catalog']}_"
         f"{source['spectral_type']}_n{settings['num_wavelengths']}"
     )
-    input_dir = PROJECT_DIR / "model_inputs" / name
-    telescope_dir = (
-        PROJECT_DIR / "model_inputs" / "telescope_opd" / role
-    )
+    input_dir = model_input_dir(settings)
+    telescope_dir = telescope_input_dir(settings, role)
     pupil_dir = input_dir / "pupil_masks"
     instrument_dir = input_dir / "instrument_opds"
     focal_dir = input_dir / f"focal_mask_fft{settings['fft_oversample']}"
@@ -52,9 +53,18 @@ def load_miri_inputs(role="reference"):
         "focal_mask": focal_dir,
     }.items():
         record = json.loads((folder / "metadata.json").read_text())
-        if record["settings"] != settings:
+        saved_settings = dict(record["settings"])
+        requested_settings = dict(settings)
+        if label == "telescope":
+            # The telescope pupil map is independent of spectral sampling
+            # and of FFT/detector padding. Pupil size and optical settings
+            # still have to match exactly.
+            for key in ("num_wavelengths", "fft_oversample", "detector_oversample"):
+                saved_settings.pop(key, None)
+                requested_settings.pop(key, None)
+        if saved_settings != requested_settings:
             raise ValueError(
-                f"{label}: saved settings differ from miri_settings.json. "
+                f"{label}: saved settings differ from the selected settings. "
                 "Regenerate the affected inputs before continuing."
             )
         metadata[label] = record

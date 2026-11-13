@@ -6,6 +6,8 @@ Detector response and observation registration are separate operations.
 Output normalization: unit incident pupil power, not MJy/sr.
 """
 
+from miri_paths import load_opd_selections
+
 import argparse
 import json
 from pathlib import Path
@@ -208,10 +210,8 @@ def read_stpsf_geometry(inputs):
     from miri_instrument import create_miri_instrument
 
     opd_dir = PROJECT_DIR / "calibration" / "measured_opds"
-    selections = json.loads(
-        (opd_dir / "opd_selection.json").read_text()
-    )
     settings = inputs["settings"]
+    selections = load_opd_selections(settings)
 
     miri = create_miri_instrument(
         settings,
@@ -271,6 +271,7 @@ class MIRIPropagator(nn.Module):
         super().__init__()
 
         self.inputs = inputs
+        self._fixed_cache = {}
         self.settings = inputs["settings"]
 
         self.n = self.settings["pupil_pixels"]
@@ -324,6 +325,76 @@ class MIRIPropagator(nn.Module):
             coordinates * self.diameter / self.n,
         )
 
+    def _apply(self, fn, recurse=True):
+        # Cached tensors are derived, nontrainable, and excluded from checkpoints.
+        # Rebuild after a device/dtype change instead of retaining old allocations.
+        self._fixed_cache.clear()
+        return super()._apply(fn, recurse=recurse)
+
+    @torch.no_grad()
+    def _fixed_optics(self, index, opd):
+        key = (opd.device, opd.dtype, index)
+        if key in self._fixed_cache:
+            return self._fixed_cache[key]
+        common_key = (opd.device, opd.dtype, "alignment")
+        if common_key not in self._fixed_cache:
+            phasors = []
+            for size, direction in ((self.n, "forward"),
+                                    (self.n * self.fft_os, "backward")):
+                coordinates = torch.arange(size, dtype=opd.dtype, device=opd.device)
+                coordinates = coordinates - (size - 1) / 2
+                phase = torch.pi * (coordinates[:, None] + coordinates[None, :])
+                phase = phase / (self.n * self.fft_os)
+                if direction == "backward":
+                    phase = -phase
+                phasors.append(torch.exp(1j * phase))
+            self._fixed_cache[common_key] = phasors
+        alignment, unalignment = self._fixed_cache[common_key]
+        transmission, phase = load_focal_mask(self.inputs, index)
+        transmission = torch.as_tensor(transmission, dtype=opd.dtype, device=opd.device)
+        phase = torch.as_tensor(phase, dtype=opd.dtype, device=opd.device)
+        wavelength = float(self.inputs["wavelengths"][index])
+        output_size = self.det_n * self.det_os
+
+        fov_lambda_over_d = (
+            self.det_n
+            * self.settings["pixel_scale_arcsec"]
+            * ARCSEC_TO_RAD
+            * self.diameter
+            / wavelength
+        )
+
+        pupil_coordinates = (
+            self.pupil_coordinate_m / self.diameter
+        )
+
+        detector_coordinates = torch.arange(
+            output_size,
+            dtype=opd.dtype,
+            device=opd.device,
+        )
+        detector_coordinates = (
+            detector_coordinates - (output_size - 1) / 2
+        ) * fov_lambda_over_d / output_size
+
+        matrix = torch.exp(
+            2j
+            * torch.pi
+            * torch.outer(
+                pupil_coordinates,
+                detector_coordinates,
+            )
+        )
+
+        normalization = (
+            fov_lambda_over_d / (self.n * output_size)
+        )
+        fixed = dict(alignment=alignment, unalignment=unalignment,
+                     transmission=transmission, phase_phasor=torch.exp(1j * phase),
+                     matrix=matrix, normalization=normalization)
+        self._fixed_cache[key] = fixed
+        return fixed
+
     def monochromatic(
         self,
         index,
@@ -372,43 +443,14 @@ class MIRIPropagator(nn.Module):
         # 1. Telescope coordinate inversion.
         field = apply_coordinate_inversion(field)
 
-        # 2. Forward FQPM alignment.
-        field = apply_fqpm_alignment(
-            field, self.n, self.fft_os
-        )
-
-        # Propagate to the intermediate focal plane.
+        # Fixed optical tensors are constructed once on the active device.
+        fixed = self._fixed_optics(index, opd)
+        field = field * fixed["alignment"]
         field = pupil_to_focal(field, self.fft_os)
-
-        # 3. Apply the saved focal-mask transmission AND phase.
-        transmission, phase = load_focal_mask(
-            self.inputs, index
-        )
-        transmission = torch.as_tensor(
-            transmission,
-            dtype=opd.dtype,
-            device=opd.device,
-        )
-        phase = torch.as_tensor(
-            phase,
-            dtype=opd.dtype,
-            device=opd.device,
-        )
-
-        field = (
-            field * transmission * torch.exp(1j * phase)
-        )
-
-        # Return to the pupil.
+        # Keep the original multiplication order for numerical equivalence.
+        field = field * fixed["transmission"] * fixed["phase_phasor"]
         field = focal_to_pupil(field)
-
-        # 4. Reverse FQPM alignment.
-        field = apply_fqpm_alignment(
-            field,
-            self.n,
-            self.fft_os,
-            direction="backward",
-        )
+        field = field * fixed["unalignment"]
 
         # 5. Lyot stop.
         # Its transmission is zero outside the saved pupil grid.
@@ -435,46 +477,9 @@ class MIRIPropagator(nn.Module):
             2j * torch.pi * instrument_opd / wavelength
         )
 
-        # 8. Matrix Fourier transform to the detector grid.
-        # Detector oversampling is independent of FFT oversampling.
-        output_size = self.det_n * self.det_os
-
-        fov_lambda_over_d = (
-            self.det_n
-            * self.settings["pixel_scale_arcsec"]
-            * ARCSEC_TO_RAD
-            * self.diameter
-            / wavelength
-        )
-
-        pupil_coordinates = (
-            self.pupil_coordinate_m / self.diameter
-        )
-
-        detector_coordinates = torch.arange(
-            output_size,
-            dtype=opd.dtype,
-            device=opd.device,
-        )
-        detector_coordinates = (
-            detector_coordinates - (output_size - 1) / 2
-        ) * fov_lambda_over_d / output_size
-
-        matrix = torch.exp(
-            2j
-            * torch.pi
-            * torch.outer(
-                pupil_coordinates,
-                detector_coordinates,
-            )
-        )
-
-        normalization = (
-            fov_lambda_over_d / (self.n * output_size)
-        )
-        field = (
-            matrix.T @ field @ matrix
-        ) * normalization
+        # 8. Fixed matrix Fourier transform to the detector grid.
+        matrix = fixed["matrix"]
+        field = (matrix.T @ field @ matrix) * fixed["normalization"]
 
         return field.abs().square()
 

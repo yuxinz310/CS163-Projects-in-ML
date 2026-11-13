@@ -1,0 +1,28 @@
+{
+  "iters": 15000,
+  "forced_stop_iter": 15000,
+  "ref_cutoff_iter": 5500,
+
+  "stage_fluxpos_cutoff_iter": 600,
+  "stage_fit_flat_fields_start_iter": 3500,
+  "stage_fit_flat_fields_end_iter": 5500,
+
+  "lr": 4e-9,
+  "big_lr_factor": 10,
+  "even_bigger_lr_factor": 1000,
+  "sci_lr_weight": 0.005,
+
+  "fluxwindsize": 30,
+
+  "fit_flat_field": true,
+  "freeze_position": true,
+  "freeze_OTE_OPD_sci": true,
+
+  "weigh_reference_by_noise": false,
+  "weigh_loss_by_noise": false,
+
+  "inject_how_many_sigma_flux": 0,
+  "save_every": 100,
+  "snr_every": 100,
+  "save_iterations": [11000, 15000]
+}

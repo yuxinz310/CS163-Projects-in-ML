@@ -1,5 +1,7 @@
+import argparse
 import json
 from pathlib import Path
+from miri_paths import model_input_dir, load_opd_selections
 
 import numpy as np
 from miri_instrument import create_miri_instrument
@@ -62,8 +64,11 @@ def generate_pupil_maps(miri, settings, wavelength):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--settings", type=Path, default=PROJECT_DIR / "miri_settings.json")
+    args = parser.parse_args()
     settings = json.loads(
-        (PROJECT_DIR / "miri_settings.json").read_text()
+        args.settings.read_text()
     )
     source = settings["source_spectrum"]
 
@@ -71,13 +76,11 @@ def main():
         f"{settings['filter']}_{source['catalog']}_"
         f"{source['spectral_type']}_n{settings['num_wavelengths']}"
     )
-    input_dir = PROJECT_DIR / "model_inputs" / name
+    input_dir = model_input_dir(settings)
     wavelengths = np.load(input_dir / "lambda_weights.npy")[0]
 
     opd_dir = PROJECT_DIR / "calibration" / "measured_opds"
-    selections = json.loads(
-        (opd_dir / "opd_selection.json").read_text()
-    )
+    selections = load_opd_selections(settings)
 
     miri = create_miri_instrument(
         settings,

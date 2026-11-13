@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import numpy as np
+from miri_paths import load_opd_selections, telescope_input_dir
 
 
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -52,6 +53,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Prepare and save the telescope OPD for MIRI."
     )
+    parser.add_argument("--settings", type=Path, default=PROJECT_DIR / "miri_settings.json")
     parser.add_argument(
         "--role",
         choices=["target", "reference"],
@@ -60,11 +62,9 @@ def main():
     args = parser.parse_args()
 
     settings = json.loads(
-        (PROJECT_DIR / "miri_settings.json").read_text()
+        args.settings.read_text()
     )
-    selections = json.loads(
-        (OPD_DIR / "opd_selection.json").read_text()
-    )
+    selections = load_opd_selections(settings)
 
     selection = selections[args.role]
     opd_file = OPD_DIR / selection["opd_file"]
@@ -86,9 +86,7 @@ def main():
         raise ValueError("The telescope OPD contains invalid values.")
 
     # Save the processed telescope map.
-    output_dir = (
-        PROJECT_DIR / "model_inputs" / "telescope_opd" / args.role
-    )
+    output_dir = telescope_input_dir(settings, args.role)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     output_file = output_dir / "telescope_opd.npy"

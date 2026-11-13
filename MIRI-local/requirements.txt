@@ -1,9 +1,22 @@
-astropy==6.1.2
-imageio==2.35.1
-matplotlib==3.9.2
+# Tested on Linux / Python 3.11 / NVIDIA CUDA (H200).
+# Keep PyPI available for astronomy packages; use PyTorch's index for CUDA wheels.
+--extra-index-url https://download.pytorch.org/whl/cu118
+
+# GPU framework: exact builds used for the demo.
+torch==2.4.0+cu118
+torchvision==0.19.0+cu118
+
+# Calibration and optical-input preparation.
 numpy==2.1.0
+scipy==1.17.1
+astropy==8.0.2
+stpsf==2.2.0
+poppy==1.1.2
+synphot==1.8.0
+pysiaf==0.29.0
+stsynphot==1.5.1
+
+# SNR, plotting and video output.
 pyklip==2.8
-scipy==1.14.1
-torch==v2.4.0
-torchvision==0.19.0
-tqdm==4.66.5
+imageio-ffmpeg==0.6.0
+matplotlib==3.11.2

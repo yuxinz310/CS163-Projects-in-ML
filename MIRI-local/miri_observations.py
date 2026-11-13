@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import numpy as np
 from astropy.io import fits
@@ -22,10 +23,10 @@ def load_single_image(path, expected_shape):
     return array.astype(np.float64)
 
 
-def load_miri_observations():
+def load_miri_observations(settings_path=None):
     """Load the selected target/reference images and their fitting masks."""
     settings = json.loads(
-        (PROJECT_DIR / "miri_settings.json").read_text()
+        Path(settings_path or PROJECT_DIR / "miri_settings.json").read_text()
     )
 
     data_dir = (

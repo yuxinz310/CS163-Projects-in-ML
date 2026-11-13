@@ -1,5 +1,7 @@
+import argparse
 import json
 from pathlib import Path
+from miri_paths import model_input_dir, load_opd_selections
 
 import astropy.units as u
 import numpy as np
@@ -74,12 +76,15 @@ def sample_focal_mask(system, focal_mask, wavelength, settings):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--settings", type=Path, default=PROJECT_DIR / "miri_settings.json")
+    args = parser.parse_args()
     settings = json.loads(
-        (PROJECT_DIR / "miri_settings.json").read_text()
+        args.settings.read_text()
     )
 
-    if settings["image_mask"] != "FQPM1140":
-        raise ValueError("This first exporter supports FQPM1140.")
+    if settings["image_mask"] not in ("FQPM1140", "FQPM1550"):
+        raise ValueError("This exporter supports FQPM1140 and FQPM1550.")
 
     fft_oversample = settings["fft_oversample"]
     if not isinstance(fft_oversample, int) or fft_oversample < 1:
@@ -90,7 +95,7 @@ def main():
         f"{settings['filter']}_{source['catalog']}_"
         f"{source['spectral_type']}_n{settings['num_wavelengths']}"
     )
-    input_dir = PROJECT_DIR / "model_inputs" / name
+    input_dir = model_input_dir(settings)
 
     wavelength_weights = np.load(input_dir / "lambda_weights.npy")
     if wavelength_weights.shape != (2, settings["num_wavelengths"]):
@@ -100,9 +105,7 @@ def main():
 
     # Reuse our configured STPSF instrument.
     opd_dir = PROJECT_DIR / "calibration" / "measured_opds"
-    selections = json.loads(
-        (opd_dir / "opd_selection.json").read_text()
-    )
+    selections = load_opd_selections(settings)
 
     miri = create_miri_instrument(
         settings,

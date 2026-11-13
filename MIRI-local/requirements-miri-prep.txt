@@ -1,8 +1,0 @@
-numpy==2.1.0
-scipy==1.17.1
-astropy==8.0.2
-stpsf==2.2.0
-poppy==1.1.2
-synphot==1.8.0
-pysiaf==0.29.0
-stsynphot==1.5.1

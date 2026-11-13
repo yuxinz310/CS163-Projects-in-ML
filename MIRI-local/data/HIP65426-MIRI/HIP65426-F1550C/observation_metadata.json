@@ -1,0 +1,20 @@
+{
+  "target": {
+    "source_file": "jw01386008001_04101_00001_mirimage_calints.fits",
+    "instrument": "MIRI",
+    "filter": "F1550C",
+    "coronagraph": "4QPM_1550",
+    "aperture": "MIRIM_MASK1550",
+    "start_time_utc": "2022-07-17T22:58:10.204",
+    "end_time_utc": "2022-07-17T23:58:19.545"
+  },
+  "reference": {
+    "source_file": "jw01386007001_04101_00001_mirimage_calints.fits",
+    "instrument": "MIRI",
+    "filter": "F1550C",
+    "coronagraph": "4QPM_1550",
+    "aperture": "MIRIM_MASK1550",
+    "start_time_utc": "2022-07-17T21:04:59.817",
+    "end_time_utc": "2022-07-17T21:12:39.523"
+  }
+}

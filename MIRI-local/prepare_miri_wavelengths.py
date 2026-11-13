@@ -1,5 +1,7 @@
+import argparse
 import json
 from pathlib import Path
+from miri_paths import model_input_dir
 
 import numpy as np
 
@@ -21,6 +23,7 @@ def generate_wavelength_weights(filter_name, spectrum, num_wavelengths):
     miri.filter = filter_name
 
     # Internal method also called by STPSF's PSF calculation.
+    # STPSF can get the wavelength and weight with the spectrum and num of wavelength
     wavelengths, weights = miri._get_weights(
         source=spectrum,
         nlambda=num_wavelengths,
@@ -40,7 +43,10 @@ def generate_wavelength_weights(filter_name, spectrum, num_wavelengths):
 
 
 def main():
-    with (PROJECT_DIR / "miri_settings.json").open() as f:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--settings", type=Path, default=PROJECT_DIR / "miri_settings.json")
+    args = parser.parse_args()
+    with args.settings.open() as f:
         settings = json.load(f)
 
     source = settings["source_spectrum"]
@@ -67,7 +73,7 @@ def main():
         f"{settings['filter']}_{source['catalog']}_"
         f"{source['spectral_type']}_n{settings['num_wavelengths']}"
     )
-    output_dir = PROJECT_DIR / "model_inputs" / name
+    output_dir = model_input_dir(settings)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Match pyflip's array layout: row 0 = meters, row 1 = weights.
